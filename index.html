@@ -469,7 +469,7 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
       <div id="quickBtns" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
     </div>
   </div>
-  <div class="empty-note" id="emptyNote">📭 所选日期范围内暂无工作量数据（当前数据覆盖 8/16 ~ 9/11）</div>
+  <div class="empty-note" id="emptyNote">📭 所选日期范围内暂无工作量数据（当前数据覆盖 8/16 ~ 9/12）</div>
 
   <div class="kpis" id="kpis"></div>
 
@@ -531,7 +531,7 @@ const PROJ=[
 ];
 const NAMES=["马红霞","杨凡凡","赵豫思"];
 const COLORS=["#ED7D31","#4F81BD","#70AD47","#9E5FA8","#C0504D","#2E9C8F","#D8A657","#8C564B","#E86DA4"];
-const DAYS=["8/16","8/17","8/18","8/19","8/20","8/21","8/22","8/23","8/24","8/25","8/26","8/27","8/28","8/29","8/30","8/31","9/1","9/2","9/3","9/4","9/5","9/6","9/7","9/8","9/9","9/10","9/11"];
+const DAYS=["8/16","8/17","8/18","8/19","8/20","8/21","8/22","8/23","8/24","8/25","8/26","8/27","8/28","8/29","8/30","8/31","9/1","9/2","9/3","9/4","9/5","9/6","9/7","9/8","9/9","9/10","9/11","9/12"];
 
 const RAW=[
   {d:"8/16",n:"马红霞",p:{waihu:[2,5.9],shangxia:[15,15],mail:[0,0],yichang:[15,102],qutui:[0,0],xiaoxi:[16,46],shipin:[5,14],sw:[5,68],gongdan:[5,215.5]},h:8},
@@ -615,6 +615,9 @@ const RAW=[
   {d:"9/11",n:"赵豫思",p:{waihu:[0,0],shangxia:[0,0],mail:[0,0],yichang:[0,0],qutui:[0,0],xiaoxi:[0,0],shipin:[0,0],sw:[0,0],gongdan:[0,0]},h:0},
   {d:"9/11",n:"马红霞",p:{waihu:[12,8],shangxia:[31,31],mail:[17,17],yichang:[18,71],qutui:[0,0],xiaoxi:[16,48],shipin:[11,64],sw:[4,76],gongdan:[2,86.2]},h:8},
   {d:"9/11",n:"杨凡凡",p:{waihu:[8,14],shangxia:[15,15],mail:[17,17],yichang:[11,52],qutui:[0,0],xiaoxi:[8,16],shipin:[7,48],sw:[4,63],gongdan:[2,86.2]},h:7},
+  {d:"9/12",n:"赵豫思",p:{waihu:[0,0],shangxia:[0,0],mail:[0,0],yichang:[0,0],qutui:[0,0],xiaoxi:[0,0],shipin:[0,0],sw:[0,0],gongdan:[0,0]},h:0},
+  {d:"9/12",n:"马红霞",p:{waihu:[4,3],shangxia:[43,43],mail:[0,0],yichang:[30,98],qutui:[0,0],xiaoxi:[16,43],shipin:[4,12],sw:[5,38],gongdan:[4,172.4]},h:8},
+  {d:"9/12",n:"杨凡凡",p:{waihu:[0,0],shangxia:[0,0],mail:[0,0],yichang:[0,0],qutui:[0,0],xiaoxi:[0,0],shipin:[0,0],sw:[0,0],gongdan:[0,0]},h:0},
 ];
 RAW.forEach(r=>{
   r.tq=()=>PROJ.reduce((s,p)=>s+r.p[p.key][0],0);
