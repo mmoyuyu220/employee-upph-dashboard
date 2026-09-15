@@ -388,12 +388,7 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
   table.dtbl td.latest{background:#f3f7ff;}
   .filterbar label.chk{display:inline-flex;align-items:center;gap:4px;font-weight:400;color:#5b6678;font-size:13px;}
   /* 数据 / 分析 页签（新三模块，沿用现有 pill 页签风格） */
-  .ptabs{display:flex;gap:8px;margin:2px 0 14px;}
-  .ptab{border:1px solid #d4dded;background:#fff;cursor:pointer;padding:6px 20px;border-radius:8px;font-size:13px;color:#3a5fa8;font-weight:700;transition:.15s;}
-  .ptab:hover{background:#f2f6ff;}
-  .ptab.active{background:#3a5fa8;color:#fff;border-color:#3a5fa8;}
-  .subpanel{display:none;}
-  .subpanel.active{display:block;}
+  /* 数据/分析 页签样式已移除：三个新模块改回「页面内数据 + 底部 grid-sep 分析区」与老板块一致 */
 </style>
 </head>
 <body>
@@ -590,23 +585,15 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
           <button class="btn-reset" id="edDayYesterday">昨天</button>
           <span class="status" id="edDayNote"></span>
         </div>
-        <div class="ptabs">
-          <button class="ptab active" data-ptab="data">数据</button>
-          <button class="ptab" data-ptab="ana">分析</button>
+        <div class="kpis" id="edDayKpis"></div>
+        <div class="card"><h3>分步效率（当日）</h3><div class="kpis" id="edSubKpis"></div><div class="desc">效率 = 当日产出 ÷ 当日出勤工时。质检=产出125行(拆修239/功能&amp;外观269)；辅助=产出155行(app371)；收仓=产出185行(发货617/拣货647/收货677)，均 ÷ 出勤表对应行</div></div>
+        <div class="card"><h3>明细数据</h3>
+          <div class="dtbl-wrap"><table class="dtbl"><thead><tr><th>日期</th><th>产出</th><th>出勤工时</th><th>实际效率</th><th>标准需工时</th><th>工时差</th><th>判定</th></tr></thead><tbody id="edTbody"></tbody></table></div>
         </div>
-        <div class="subpanel active" data-panel="data">
-          <div class="kpis" id="edDayKpis"></div>
-          <div class="card"><h3>分步效率（当日）</h3><div class="kpis" id="edSubKpis"></div><div class="desc">效率 = 当日产出 ÷ 当日出勤工时。质检=产出125行(拆修239/功能&amp;外观269)；辅助=产出155行(app371)；收仓=产出185行(发货617/拣货647/收货677)，均 ÷ 出勤表对应行</div></div>
-          <div class="card"><h3>明细数据</h3>
-            <div class="dtbl-wrap"><table class="dtbl"><thead><tr><th>日期</th><th>产出</th><th>出勤工时</th><th>实际效率</th><th>标准需工时</th><th>工时差</th><th>判定</th></tr></thead><tbody id="edTbody"></tbody></table></div>
-          </div>
-        </div>
-        <div class="subpanel" data-panel="ana">
-          <div class="grid-sep"><span>分析</span></div>
-          <div class="grid">
-            <div class="card"><h3>每日实际效率 vs 标准线</h3><div id="edLine" style="height:300px;"></div></div>
-            <div class="card"><h3>每日工时差（红=多耗 / 绿=节省）</h3><div id="edBar" style="height:300px;"></div></div>
-          </div>
+        <div class="grid-sep"><span>分析</span></div>
+        <div class="grid">
+          <div class="card"><h3>每日实际效率 vs 标准线</h3><div id="edLine" style="height:300px;"></div></div>
+          <div class="card"><h3>每日工时差（红=多耗 / 绿=节省）</h3><div id="edBar" style="height:300px;"></div></div>
         </div>
       </div>
     </section>
@@ -623,17 +610,9 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
           <span class="status" id="seStatus"></span>
           <div class="quick-row"><span class="qlbl">快速选择：</span><div id="seQuick" style="display:flex;gap:8px;flex-wrap:wrap;"></div></div>
         </div>
-        <div class="ptabs">
-          <button class="ptab active" data-ptab="data">数据</button>
-          <button class="ptab" data-ptab="ana">分析</button>
-        </div>
-        <div class="subpanel active" data-panel="data">
-          <div class="grid" id="seCards" style="margin-top:14px;"></div>
-        </div>
-        <div class="subpanel" data-panel="ana">
-          <div class="grid-sep"><span>分析</span></div>
-          <div class="card"><h3>分步产出帕累托（产能分布）</h3><div id="sePareto" style="height:340px;"></div><div class="desc">按筛选区间内各分步「总产出」降序排列，柱=总产出，紫折线=累计占比，识别产能主要集中在哪一环节（80% 帕累托线为参考）</div></div>
-        </div>
+        <div class="grid" id="seCards" style="margin-top:14px;"></div>
+        <div class="grid-sep"><span>分析</span></div>
+        <div class="card"><h3>分步产出帕累托（产能分布）</h3><div id="sePareto" style="height:340px;"></div><div class="desc">按筛选区间内各分步「总产出」降序排列，柱=总产出，紫折线=累计占比，识别产能主要集中在哪一环节（80% 帕累托线为参考）</div></div>
       </div>
     </section>
     <section class="page" id="page-exp-data">
@@ -657,24 +636,16 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
           <span class="status" id="expStatus"></span>
           <div class="quick-row"><span class="qlbl">周范围快速：</span><div id="expQuick" style="display:flex;gap:8px;flex-wrap:wrap;"></div></div>
         </div>
-        <div class="ptabs">
-          <button class="ptab active" data-ptab="data">数据</button>
-          <button class="ptab" data-ptab="ana">分析</button>
+        <div class="kpis" id="expStat" style="margin-top:12px;"></div>
+        <div class="card"><h3>指标预警</h3><div id="expWarn"></div></div>
+        <div id="expTables"></div>
+        <div class="grid-sep"><span>分析</span></div>
+        <div class="grid">
+          <div class="card" id="card-expTrend"><h3>流转损率趋势（周度）</h3><div id="expTrend" style="height:300px;"></div><div class="desc">紫线=流转损率、蓝线=总报损率（纵轴为百分比数值，如 0.054%）；红色虚线=指标 0.015%；圆点标红=超指标周。随上方周筛选联动。</div></div>
+          <div class="card" id="card-expPareto"><h3>报损量帕累托（总报损量·按周）</h3><div id="expPareto" style="height:320px;"></div><div class="desc">柱=筛选周内各周总报损量（降序排列），紫折线=累计占比；橙虚线=80% 帕累托线，用于定位「关键少数」周。随上方周筛选联动。</div></div>
         </div>
-        <div class="subpanel active" data-panel="data">
-          <div class="kpis" id="expStat" style="margin-top:12px;"></div>
-          <div class="card"><h3>指标预警</h3><div id="expWarn"></div></div>
-          <div id="expTables"></div>
-        </div>
-        <div class="subpanel" data-panel="ana">
-          <div class="grid-sep"><span>分析</span></div>
-          <div class="grid">
-            <div class="card" id="card-expTrend"><h3>流转损率趋势（周度）</h3><div id="expTrend" style="height:300px;"></div><div class="desc">紫线=流转损率、蓝线=总报损率（纵轴为百分比数值，如 0.054%）；红色虚线=指标 0.015%；圆点标红=超指标周。随上方周筛选联动。</div></div>
-            <div class="card" id="card-expPareto"><h3>报损量帕累托（总报损量·按周）</h3><div id="expPareto" style="height:320px;"></div><div class="desc">柱=筛选周内各周总报损量（降序排列），紫折线=累计占比；橙虚线=80% 帕累托线，用于定位「关键少数」周。随上方周筛选联动。</div></div>
-          </div>
-          <div class="grid">
-            <div class="card" id="card-expSanCui"><h3>三催分仓 24H处理率（指标95%）</h3><div id="expSanCui" style="height:300px;"></div><div class="desc">三仓24H催单处理率（单位%）；红色虚线=指标95%，圆点标红=低于95%的周。随上方周筛选联动。</div></div>
-          </div>
+        <div class="grid">
+          <div class="card" id="card-expSanCui"><h3>三催分仓 24H处理率（指标95%）</h3><div id="expSanCui" style="height:300px;"></div><div class="desc">三仓24H催单处理率（单位%）；红色虚线=指标95%，圆点标红=低于95%的周。随上方周筛选联动。</div></div>
         </div>
       </div>
     </section>
@@ -1747,17 +1718,12 @@ window.DASHBOARD_DATA = {"2026-07-16":{"date":"2026-07-16","messages":{"external
     card.addEventListener('click', function(e){
       e.preventDefault();
       var t=card.getAttribute('data-target');
-      /* 新三大模块：从首页「分析看板」跳转到对应模块并自动切到「分析」页签 */
+      /* 新三大模块：从首页「分析看板」跳转到对应模块页面（数据 + 底部分析图同页展示） */
       if(t==='effDaily'||t==='subEff'||t==='expData'){
         var pageMap={effDaily:'eff-daily',subEff:'sub-eff',expData:'exp-data'};
         var pid=pageMap[t];
         var navA=document.querySelector('#nav a[data-page="'+pid+'"]');
         if(navA) navA.click();
-        setTimeout(function(){
-          var sec=document.getElementById('page-'+pid);
-          var anaBtn=sec?sec.querySelector('.ptab[data-ptab="ana"]'):null;
-          if(anaBtn) anaBtn.click();
-        }, 90);
         return;
       }
       window.__homeTarget=t;
@@ -2742,22 +2708,6 @@ window.DASHBOARD_DATA = {"2026-07-16":{"date":"2026-07-16","messages":{"external
     }
   });
 
-  // ============ 数据 / 分析 页签切换 ============
-  Array.prototype.forEach.call(document.querySelectorAll('.ptab'), function(btn){
-    btn.addEventListener('click', function(){
-      var page=btn.closest('.page'); if(!page) return;
-      var name=btn.getAttribute('data-ptab');
-      Array.prototype.forEach.call(page.querySelectorAll('.ptab'), function(b){ b.classList.toggle('active', b===btn); });
-      Array.prototype.forEach.call(page.querySelectorAll('.subpanel'), function(p){ p.classList.toggle('active', p.getAttribute('data-panel')===name); });
-      if(name==='ana'){
-        setTimeout(function(){
-          if(page.id==='page-eff-daily') renderEffDaily();
-          else if(page.id==='page-sub-eff') renderSubEff();
-          else if(page.id==='page-exp-data') renderExpData();
-        }, 60);
-      }
-    });
-  });
   window.addEventListener('resize', resizeCharts);
 
   initEffDaily();
