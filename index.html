@@ -349,6 +349,15 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
 .module-card.card-attendAna .mc-title,.module-card.card-attendAna .mc-desc{color:#fff;}
 .module-card.card-attendAna .mc-desc{opacity:.88;}
 .module-card.card-attendAna:hover{border-color:#e2d6f2;box-shadow:0 12px 28px rgba(122,94,168,.34);}
+.module-card.card-xianEff{background:linear-gradient(135deg,#e8833a,#f0a85a);border-color:transparent;box-shadow:0 6px 18px rgba(232,131,58,.30);}
+.module-card.card-xianEff .mc-title,.module-card.card-xianEff .mc-desc{color:#fff;}
+.module-card.card-xianEff:hover{border-color:#fbe2cc;box-shadow:0 12px 28px rgba(232,131,58,.34);}
+.module-card.card-xianSub{background:linear-gradient(135deg,#2e8b9e,#46c2c2);border-color:transparent;box-shadow:0 6px 18px rgba(46,139,158,.30);}
+.module-card.card-xianSub .mc-title,.module-card.card-xianSub .mc-desc{color:#fff;}
+.module-card.card-xianSub:hover{border-color:#cdeef0;box-shadow:0 12px 28px rgba(46,139,158,.34);}
+.module-card.card-xianExp{background:linear-gradient(135deg,#c0506a,#d97f96);border-color:transparent;box-shadow:0 6px 18px rgba(192,80,106,.30);}
+.module-card.card-xianExp .mc-title,.module-card.card-xianExp .mc-desc{color:#fff;}
+.module-card.card-xianExp:hover{border-color:#f3d6dd;box-shadow:0 12px 28px rgba(192,80,106,.34);}
 .ana-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:8px 0 4px;}
 .ana-chart-wrap{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 12px;box-shadow:0 3px 10px rgba(30,35,45,.05);}
 .ana-chart-title{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px;}
@@ -473,6 +482,21 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
         <div class="mc-ico">🗓️</div>
         <div class="mc-title">员工出勤分析</div>
         <div class="mc-desc">区间 · 出勤天数／出勤率趋势</div>
+      </a>
+      <a class="module-card card-xianEff" data-target="effDaily" href="javascript:void(0)">
+        <div class="mc-ico">📈</div>
+        <div class="mc-title">每日效率分析（西安）</div>
+        <div class="mc-desc">西安 · 实际效率 vs 标准线 / 工时差</div>
+      </a>
+      <a class="module-card card-xianSub" data-target="subEff" href="javascript:void(0)">
+        <div class="mc-ico">📊</div>
+        <div class="mc-title">分步效率分析（西安）</div>
+        <div class="mc-desc">西安 · 质检/辅助/收仓 产能帕累托</div>
+      </a>
+      <a class="module-card card-xianExp" data-target="expData" href="javascript:void(0)">
+        <div class="mc-ico">🧪</div>
+        <div class="mc-title">西安体验数据分析</div>
+        <div class="mc-desc">西安 · 流转损/报损/三催处理率趋势</div>
       </a>
     </div>
 
@@ -1723,6 +1747,19 @@ window.DASHBOARD_DATA = {"2026-07-16":{"date":"2026-07-16","messages":{"external
     card.addEventListener('click', function(e){
       e.preventDefault();
       var t=card.getAttribute('data-target');
+      /* 新三大模块：从首页「分析看板」跳转到对应模块并自动切到「分析」页签 */
+      if(t==='effDaily'||t==='subEff'||t==='expData'){
+        var pageMap={effDaily:'eff-daily',subEff:'sub-eff',expData:'exp-data'};
+        var pid=pageMap[t];
+        var navA=document.querySelector('#nav a[data-page="'+pid+'"]');
+        if(navA) navA.click();
+        setTimeout(function(){
+          var sec=document.getElementById('page-'+pid);
+          var anaBtn=sec?sec.querySelector('.ptab[data-ptab="ana"]'):null;
+          if(anaBtn) anaBtn.click();
+        }, 90);
+        return;
+      }
       window.__homeTarget=t;
       document.querySelectorAll('.module-card').forEach(function(c){ c.classList.remove('active'); });
       card.classList.add('active');
