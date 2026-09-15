@@ -356,6 +356,10 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
 @media (min-width:1080px){ .module-grid{grid-template-columns:repeat(4,minmax(0,1fr));} .module-grid-ana{grid-template-columns:repeat(4,minmax(0,1fr));} }
 </style>
 
+<style>
+  .panel-embed{width:100%;height:calc(100vh - 120px);min-height:640px;}
+  .panel-embed iframe{width:100%;height:100%;border:0;border-radius:12px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+</style>
 </head>
 <body>
 <div class="app">
@@ -367,6 +371,9 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
     <a data-page="upph"><span>📋 每日工作量明细</span></a>
     <a data-page="ops-day"><span>📈 运营数据单日详情</span></a>
     <a data-page="attend"><span>👥 员工出勤</span></a>
+    <a data-page="eff-daily"><span>📊 每日效率</span></a>
+    <a data-page="sub-eff"><span>🧩 分步效率</span></a>
+    <a data-page="exp-data"><span>📍 西安体验数据</span></a>
   </div>
   <div class="nav-spacer"></div>
   <div class="nav-foot">员工工作量与UPPH看板 · 运营数据单日详情已并入</div>
@@ -511,6 +518,21 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
     </section>
     <section class="page" id="page-attend">
       <div class="wrap" id="attendContent"></div>
+    </section>
+    <section class="page" id="page-eff-daily">
+      <div class="wrap">
+        <div class="panel-embed"><iframe src="https://mmoyuyu220.github.io/daily-work-dashboard/#embed=1&page=eff-daily" title="每日效率" loading="lazy"></iframe></div>
+      </div>
+    </section>
+    <section class="page" id="page-sub-eff">
+      <div class="wrap">
+        <div class="panel-embed"><iframe src="https://mmoyuyu220.github.io/daily-work-dashboard/#embed=1&page=sub-eff" title="分步效率" loading="lazy"></iframe></div>
+      </div>
+    </section>
+    <section class="page" id="page-exp-data">
+      <div class="wrap">
+        <div class="panel-embed"><iframe src="https://mmoyuyu220.github.io/daily-work-dashboard/#embed=1&page=exp-data" title="西安体验数据" loading="lazy"></iframe></div>
+      </div>
     </section>
   </main>
 </div><!-- /app -->
