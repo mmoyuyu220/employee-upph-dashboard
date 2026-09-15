@@ -301,17 +301,17 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
 .fh-select:focus{border-color:var(--accent);}
 .fh-status{flex:1;min-width:220px;justify-content:flex-end;align-items:flex-end;}
 .fh-status-text{font-size:13px;color:var(--ink-soft);line-height:1.5;text-align:right;}
-.module-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px;margin-top:6px;}
+.module-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px;margin-top:6px;}
 .grid-sep{position:relative;margin:22px 0 8px;padding-left:12px;font-size:13px;font-weight:700;color:var(--ink-soft);letter-spacing:.5px;}
 .grid-sep::before{content:"";position:absolute;left:0;top:1px;bottom:1px;width:4px;border-radius:2px;background:linear-gradient(180deg,#7a5ea8,#46c2a8);}
-.module-grid-ana{margin-top:0;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));}
+.module-grid-ana{margin-top:0;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));}
 .module-card{
   display:block;background:#f1f4f9;border:1px solid #d8dee8;border-radius:16px;
   padding:26px 22px;cursor:pointer;text-decoration:none;transition:.18s;box-shadow:0 4px 14px rgba(30,35,45,.08);
 }
 .module-card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 10px 26px rgba(30,35,45,.12);}
 .mc-ico{font-size:30px;margin-bottom:12px;}
-.mc-title{font-size:18px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+.mc-title{font-size:18px;font-weight:700;color:var(--ink);margin-bottom:6px;white-space:nowrap;}
 .mc-desc{font-size:13px;color:var(--ink-soft);line-height:1.5;}
 @media (max-width:760px){ .module-grid{grid-template-columns:1fr;} .fh-status{justify-content:flex-start;align-items:flex-start;} .fh-status-text{text-align:left;} }
 .fh-range{display:flex;align-items:center;gap:8px;}
@@ -440,22 +440,18 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
 
     <div class="module-grid">
       <a class="module-card" data-target="warn" href="javascript:void(0)">
-        <div class="mc-ico">⚠️</div>
         <div class="mc-title">预警未处理</div>
         <div class="mc-desc">区间 · 西安未处理预警汇总</div>
       </a>
       <a class="module-card" data-target="qc" href="javascript:void(0)">
-        <div class="mc-ico">🔍</div>
         <div class="mc-title">素养检查</div>
         <div class="mc-desc">区间 · 素养检查问题汇总</div>
       </a>
       <a class="module-card" data-target="msg" href="javascript:void(0)">
-        <div class="mc-ico">💬</div>
         <div class="mc-title">消息对接统计</div>
         <div class="mc-desc">区间 · 外部／内部客服对接汇总</div>
       </a>
       <a class="module-card" data-target="gongdan" href="javascript:void(0)">
-        <div class="mc-ico">🎫</div>
         <div class="mc-title">工单量</div>
         <div class="mc-desc">区间 · 工单处理量（按区域）</div>
       </a>
@@ -464,32 +460,26 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
     <div class="grid-sep"><span>分析看板</span></div>
     <div class="module-grid module-grid-ana">
       <a class="module-card card-workAna" data-target="workAna" href="javascript:void(0)">
-        <div class="mc-ico">📈</div>
         <div class="mc-title">员工工作量分析</div>
         <div class="mc-desc">区间 · UPPH/趋势/构成/帕累托/占比</div>
       </a>
       <a class="module-card card-opsAna" data-target="opsAna" href="javascript:void(0)">
-        <div class="mc-ico">📊</div>
         <div class="mc-title">运营数据分析</div>
         <div class="mc-desc">区间 · 工单/预警/素养/消息 趋势与柏拉图</div>
       </a>
       <a class="module-card card-attendAna" data-target="attendAna" href="javascript:void(0)">
-        <div class="mc-ico">🗓️</div>
         <div class="mc-title">员工出勤分析</div>
         <div class="mc-desc">区间 · 出勤天数／出勤率趋势</div>
       </a>
       <a class="module-card card-xianEff" data-target="effDaily" href="javascript:void(0)">
-        <div class="mc-ico">📈</div>
         <div class="mc-title">每日效率分析（西安）</div>
         <div class="mc-desc">西安 · 实际效率 vs 标准线 / 工时差</div>
       </a>
       <a class="module-card card-xianSub" data-target="subEff" href="javascript:void(0)">
-        <div class="mc-ico">📊</div>
         <div class="mc-title">分步效率分析（西安）</div>
         <div class="mc-desc">西安 · 质检/辅助/收仓 产能帕累托</div>
       </a>
       <a class="module-card card-xianExp" data-target="expData" href="javascript:void(0)">
-        <div class="mc-ico">🧪</div>
         <div class="mc-title">西安体验数据分析</div>
         <div class="mc-desc">西安 · 流转损/报损/三催处理率趋势</div>
       </a>
