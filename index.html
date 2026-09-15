@@ -359,6 +359,25 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
 <style>
   .panel-embed{width:100%;height:calc(100vh - 120px);min-height:640px;}
   .panel-embed iframe{width:100%;height:100%;border:0;border-radius:12px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+
+  /* 效率/体验模块（原生移植，复用综合看板数据） */
+  .tag{display:inline-block;padding:1px 9px;border-radius:10px;font-size:11px;font-weight:600;line-height:1.6;}
+  .tag.bad{background:#ffeceb;color:#e5484d;}
+  .tag.good{background:#e8f7ee;color:#16a34a;}
+  .src-note{font-size:11px;color:#9ca3af;margin:6px 2px 2px;line-height:1.6;}
+  .src{color:#dc2626;font-size:11px;font-weight:600;}
+  .summary-line{font-size:12.5px;color:#5b6678;margin:2px 0 8px;}
+  .warn-groups{display:flex;flex-direction:column;gap:6px;}
+  .warn-group{display:flex;gap:10px;font-size:12px;padding:6px 10px;background:#fff5f5;border-radius:8px;align-items:baseline;}
+  .wg-name{font-weight:600;color:#374151;white-space:nowrap;}
+  .wg-label{color:#dc2626;font-weight:400;font-size:11px;}
+  .wg-weeks{color:#7a8597;}
+  .ok-badge{display:inline-block;padding:3px 12px;border-radius:12px;background:#e8f7ee;color:#16a34a;font-weight:600;}
+  .exp-chart-tools{font-size:12px;color:#5b6678;margin:4px 0;}
+  .exp-sel{padding:2px 6px;border-radius:6px;border:1px solid #d7deea;background:#fff;}
+  table.dtbl td.warn{color:#cf1322;font-weight:700;background:#fff1f0;}
+  table.dtbl td.latest{background:#f3f7ff;}
+  .filterbar label.chk{display:inline-flex;align-items:center;gap:4px;font-weight:400;color:#5b6678;font-size:13px;}
 </style>
 </head>
 <body>
@@ -521,17 +540,87 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
     </section>
     <section class="page" id="page-eff-daily">
       <div class="wrap">
-        <div class="panel-embed"><iframe src="https://mmoyuyu220.github.io/daily-work-dashboard/#embed=1&page=eff-daily" title="每日效率" loading="lazy"></iframe></div>
+        <header><h1>每日效率（西安）</h1><p>当日产出 ÷ 当日出勤工时 ｜ 数据同源综合效率看板</p></header>
+        <div class="filterbar">
+          <span class="lbl">日期区间：</span>
+          <label>开始</label><input type="date" id="edStart" />
+          <span class="sep">至</span>
+          <label>结束</label><input type="date" id="edEnd" />
+          <label>标准效率%</label><input type="number" id="edStd" value="84" step="0.5" style="width:78px" />
+          <button class="btn-filter" id="edApply">应用筛选</button>
+          <button class="btn-reset" id="edReset">重置为全量</button>
+          <span class="status" id="edStatus"></span>
+          <div class="quick-row"><span class="qlbl">快速选择：</span><div id="edQuick" style="display:flex;gap:8px;flex-wrap:wrap;"></div></div>
+        </div>
+        <div class="filterbar" style="margin-top:8px;">
+          <span class="lbl">查看当日：</span>
+          <input type="date" id="edDay" />
+          <button class="btn-filter" id="edDayToday">今天</button>
+          <button class="btn-reset" id="edDayYesterday">昨天</button>
+          <span class="status" id="edDayNote"></span>
+        </div>
+        <div class="kpis" id="edDayKpis"></div>
+        <div class="card"><h3>分步效率（当日）</h3><div class="kpis" id="edSubKpis"></div><div class="desc">效率 = 当日产出 ÷ 当日出勤工时。质检=产出125行(拆修239/功能&amp;外观269)；辅助=产出155行(app371)；收仓=产出185行(发货617/拣货647/收货677)，均 ÷ 出勤表对应行</div></div>
+        <div class="card"><h3>明细数据</h3>
+          <div class="dtbl-wrap"><table class="dtbl"><thead><tr><th>日期</th><th>产出</th><th>出勤工时</th><th>实际效率</th><th>标准需工时</th><th>工时差</th><th>判定</th></tr></thead><tbody id="edTbody"></tbody></table></div>
+        </div>
+        <div class="grid-sep"><span>分析</span></div>
+        <div class="grid">
+          <div class="card"><h3>每日实际效率 vs 标准线</h3><div id="edLine" style="height:300px;"></div></div>
+          <div class="card"><h3>每日工时差（红=多耗 / 绿=节省）</h3><div id="edBar" style="height:300px;"></div></div>
+        </div>
       </div>
     </section>
     <section class="page" id="page-sub-eff">
       <div class="wrap">
-        <div class="panel-embed"><iframe src="https://mmoyuyu220.github.io/daily-work-dashboard/#embed=1&page=sub-eff" title="分步效率" loading="lazy"></iframe></div>
+        <header><h1>分步效率（西安 · 区间加权）</h1><p>区间内 质检 / 辅助 / 收仓 按「总产出 ÷ 总出勤工时」加权</p></header>
+        <div class="filterbar">
+          <span class="lbl">日期区间：</span>
+          <label>开始</label><input type="date" id="seStart" />
+          <span class="sep">至</span>
+          <label>结束</label><input type="date" id="seEnd" />
+          <button class="btn-filter" id="seApply">应用筛选</button>
+          <button class="btn-reset" id="seReset">重置为全量</button>
+          <span class="status" id="seStatus"></span>
+          <div class="quick-row"><span class="qlbl">快速选择：</span><div id="seQuick" style="display:flex;gap:8px;flex-wrap:wrap;"></div></div>
+        </div>
+        <div class="grid" id="seCards" style="margin-top:14px;"></div>
+        <div class="grid-sep"><span>分析</span></div>
+        <div class="card"><h3>分步产出帕累托（产能分布）</h3><div id="sePareto" style="height:340px;"></div><div class="desc">按筛选区间内各分步「总产出」降序排列，柱=总产出，紫折线=累计占比，识别产能主要集中在哪一环节（80% 帕累托线为参考）</div></div>
       </div>
     </section>
     <section class="page" id="page-exp-data">
       <div class="wrap">
-        <div class="panel-embed"><iframe src="https://mmoyuyu220.github.io/daily-work-dashboard/#embed=1&page=exp-data" title="西安体验数据" loading="lazy"></iframe></div>
+        <header><h1>西安体验数据（周度）</h1><p>与飞书多张周报/分仓表同格式 ｜ 内置指标预警</p></header>
+        <div class="filterbar">
+          <label>数据视图</label>
+          <select id="expView">
+            <option value="all">全部</option>
+            <option value="baoSun">报损数据（西安）</option>
+            <option value="keSu">客诉-周报（西安）</option>
+            <option value="gongDan">工单时效分仓</option>
+            <option value="sanCui">三催分仓</option>
+            <option value="chaiCu">视频抽查（西安·月度）</option>
+          </select>
+          <label>起始周</label><select id="expWkFrom"></select>
+          <label>结束周</label><select id="expWkTo"></select>
+          <label class="chk"><input type="checkbox" id="expOnlyWarn" /> 仅看有预警的周</label>
+          <button class="btn-filter" id="expApply">应用筛选</button>
+          <button class="btn-reset" id="expReset">重置</button>
+          <span class="status" id="expStatus"></span>
+          <div class="quick-row"><span class="qlbl">周范围快速：</span><div id="expQuick" style="display:flex;gap:8px;flex-wrap:wrap;"></div></div>
+        </div>
+        <div class="kpis" id="expStat" style="margin-top:12px;"></div>
+        <div class="card"><h3>指标预警</h3><div id="expWarn"></div></div>
+        <div id="expTables"></div>
+        <div class="grid-sep"><span>分析</span></div>
+        <div class="grid">
+          <div class="card" id="card-expTrend"><h3>流转损率趋势（周度）</h3><div id="expTrend" style="height:300px;"></div><div class="desc">紫线=流转损率、蓝线=总报损率（纵轴为百分比数值，如 0.054%）；红色虚线=指标 0.015%；圆点标红=超指标周。随上方周筛选联动。</div></div>
+          <div class="card" id="card-expPareto"><h3>报损量帕累托（总报损量·按周）</h3><div id="expPareto" style="height:320px;"></div><div class="desc">柱=筛选周内各周总报损量（降序排列），紫折线=累计占比；橙虚线=80% 帕累托线，用于定位「关键少数」周。随上方周筛选联动。</div></div>
+        </div>
+        <div class="grid">
+          <div class="card" id="card-expSanCui"><h3>三催分仓 24H处理率（指标95%）</h3><div id="expSanCui" style="height:300px;"></div><div class="desc">三仓24H催单处理率（单位%）；红色虚线=指标95%，圆点标红=低于95%的周。随上方周筛选联动。</div></div>
+        </div>
       </div>
     </section>
   </main>
@@ -1990,5 +2079,605 @@ window.DASHBOARD_DATA = {"2026-07-16":{"date":"2026-07-16","messages":{"external
 })();
 </script>
 
+<script src="https://mmoyuyu220.github.io/daily-work-dashboard/xian_data.js"></script>
+<script src="https://mmoyuyu220.github.io/daily-work-dashboard/exp_data.js"></script>
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var EDC = {};
+  function getChart(id){
+    var el = $(id); if(!el) return null;
+    if(el.offsetParent === null) return null;
+    if(!EDC[id]){ try{ EDC[id] = echarts.init(el); }catch(e){ return null; } }
+    return EDC[id];
+  }
+  function resizeCharts(){ Object.keys(EDC).forEach(function(k){ try{ EDC[k].resize(); }catch(e){} }); }
+  function esc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  document.head.insertAdjacentHTML('beforeend',
+    '<style>'+
+    '.grp-title{font-size:14px;font-weight:700;color:#1f2c4d;margin-bottom:8px;}'+
+    '.cc-detail-btn{border:1px solid #d7deea;background:#f6f9ff;color:#cf1322;font-weight:700;border-radius:6px;padding:1px 8px;cursor:pointer;font-size:12px;}'+
+    '.cc-detail-btn:hover{background:#ffeceb;}'+
+    '.exp-row-filter{border:1px solid #d7deea;border-radius:6px;padding:2px 6px;font-size:12px;background:#fff;}'+
+    '.warn-list{padding:4px 0;}'+
+    '.note{color:#8896b4;font-size:13px;padding:6px 0;}'+
+    '#edModal .dtbl th,#edModal .dtbl td{border:1px solid #e3e9f3;padding:6px 8px;}'+
+    '</style>');
+
+  // ============ 数据 ============
+  var XIAN = (window.XIAN_DATA||[]).map(function(d){
+    return { date:d.date, label:d.label, md:d.date.slice(5).replace('-','/'),
+             output:d.prod, attend:d.att, qc:d.qc||null, assist:d.assist||null, inbound:d.inbound||null };
+  }).sort(function(a,b){ return a.date.localeCompare(b.date); });
+  var ED = window.EXP_DATA || { weeks:[], groups:{}, threshold:0.015 };
+  var EWEEKS = ED.weeks || [];
+  var EXP_ROW_FILTER = {};
+
+  if(!XIAN.length){
+    ['edDayKpis','edSubKpis','edTbody','edStatus','seCards','seStatus','expStat','expWarn','expTables'].forEach(function(id){
+      var e=$(id); if(e) e.innerHTML='<div class="note">效率数据尚未加载（xian_data.js 未能获取），请稍后刷新。</div>';
+    });
+    return;
+  }
+
+  var minD = XIAN[0].date, maxD = XIAN[XIAN.length-1].date;
+
+  function kpiCard(label,val,unit,color,sub){
+    return '<div class="kpi"><div class="label">'+label+'</div>'+
+      '<div class="val"'+(color?' style="color:'+color+'"':'')+'>'+val+(unit?'<span class="unit">'+unit+'</span>':'')+'</div>'+
+      (sub?'<div class="sub">'+sub+'</div>':'')+'</div>';
+  }
+
+  // ============ 每日效率（西安） ============
+  function xianCompute(rows,std){
+    var so=0,sa=0,ok=0;
+    rows.forEach(function(r){ so+=r.output; sa+=r.attend; if(r.eff>=std) ok++; });
+    var eff=sa?so/sa:0, need=std?so/std:0, diff=sa-need;
+    return {so:so,sa:sa,eff:eff,need:need,diff:diff,ok:ok,n:rows.length,gap:eff-std};
+  }
+  function renderEdDay(day, std){
+    if(!day) day=maxD;
+    var r=XIAN.filter(function(x){return x.date===day;})[0];
+    if(!r){ day=maxD; r=XIAN.filter(function(x){return x.date===day;})[0]; if($('edDay')) $('edDay').value=day; }
+    if(!r){ $('edDayKpis').innerHTML='<div class="note">无可用数据</div>'; return; }
+    if($('edDay')) $('edDay').value=day;
+    r.eff=r.attend?r.output/r.attend:0; r.need=r.output/std; r.diff=r.attend-r.need;
+    var gap=(r.eff-std)*100, gapCls=gap>0?'#bff5c8':'#ffc9c9', flag=r.diff>0?'#ffc9c9':'#bff5c8', verdict=r.diff>0?'多耗':'节省';
+    $('edDayKpis').innerHTML =
+      kpiCard('当日效率', (r.eff*100).toFixed(2), '%', '', '') +
+      kpiCard('较标准('+(std*100).toFixed(0)+'%)差距', ((gap>=0)?'+':'')+gap.toFixed(2), 'pct', gapCls, '') +
+      kpiCard('当日产出', r.output.toFixed(2), '', '', '') +
+      kpiCard('当日出勤工时', r.attend.toFixed(2), '', '', '') +
+      kpiCard('标准需工时', r.need.toFixed(2), '', '', '') +
+      kpiCard('当日工时差('+verdict+')', ((r.diff>=0)?'+':'')+r.diff.toFixed(2), '', flag, '');
+    renderEdSub(r);
+    $('edDayNote').textContent='日期：'+r.label+' ｜ 标准效率 '+(std*100).toFixed(0)+'%';
+  }
+  function renderEdSub(r){
+    var box=$('edSubKpis'); if(!box) return;
+    if(!r){ box.innerHTML='<div class="note">无可用数据</div>'; return; }
+    var defs=[['质检效率','qc'],['辅助效率','assist'],['收仓效率','inbound']];
+    var html='';
+    defs.forEach(function(dt){
+      var name=dt[0], key=dt[1], o=r[key];
+      if(!o){ html+=kpiCard(name,'—','','','暂无数据'); return; }
+      html+=kpiCard(name, (o.eff*100).toFixed(2)+'%', '', '', '产出 <b>'+o.prod.toFixed(2)+'</b> ÷ 出勤 <b>'+o.att.toFixed(2)+'</b>');
+    });
+    box.innerHTML=html;
+  }
+  function drawEdLine(rows,std){
+    var c=getChart('edLine'); if(!c) return;
+    var x=rows.map(function(r){return r.md;});
+    var y=rows.map(function(r){return +(r.eff*100).toFixed(2);});
+    c.setOption({
+      grid:{left:48,right:16,top:30,bottom:34},
+      tooltip:{trigger:'axis'},
+      xAxis:{type:'category',data:x,axisLabel:{fontSize:10}},
+      yAxis:{type:'value',name:'效率%',axisLabel:{formatter:'{value}%'}},
+      series:[{type:'line',data:y,symbol:'circle',symbolSize:6,lineStyle:{width:2,color:'#2563eb'},itemStyle:{color:'#2563eb'},
+        label:{show:true,position:'top',fontSize:10,formatter:function(p){return p.value+'%';}},
+        markLine:{symbol:'none',silent:true,lineStyle:{type:'dashed',color:'#dc2626',width:1.5},
+          data:[{yAxis:+(std*100).toFixed(2)}],label:{formatter:'标准 '+(std*100).toFixed(0)+'%',position:'end',color:'#dc2626',fontSize:10}}}]
+    });
+    c.resize();
+  }
+  function drawEdBar(rows){
+    var c=getChart('edBar'); if(!c) return;
+    var x=rows.map(function(r){return r.md;});
+    var data=rows.map(function(r){ return {value:+r.diff.toFixed(2), itemStyle:{color:r.diff>0?'#e54545':'#16a34a'}}; });
+    c.setOption({
+      grid:{left:52,right:16,top:24,bottom:34},
+      tooltip:{trigger:'axis',formatter:function(ps){var p=ps[0];return p.name+'<br/>工时差：'+(p.value>0?'+':'')+p.value;}},
+      xAxis:{type:'category',data:x,axisLabel:{fontSize:10}},
+      yAxis:{type:'value',name:'工时差'},
+      series:[{type:'bar',data:data,barMaxWidth:34,
+        label:{show:true,position:'top',fontSize:10,formatter:function(p){return (p.value>0?'+':'')+p.value;}},
+        markLine:{symbol:'none',silent:true,lineStyle:{color:'#333',width:1},data:[{yAxis:0}]}}]
+    });
+    c.resize();
+  }
+  function renderEffDaily(){
+    var s=$('edStart').value, e=$('edEnd').value, std=parseFloat($('edStd').value)/100;
+    var rows=XIAN.filter(function(r){return r.date>=s&&r.date<=e;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+    rows.forEach(function(r){ r.eff=r.attend?r.output/r.attend:0; r.need=r.output/std; r.diff=r.attend-r.need; });
+    if(!rows.length){ $('edTbody').innerHTML=''; $('edDayNote').textContent=''; $('edStatus').textContent='当前区间无数据'; return; }
+    $('edStatus').textContent='当前区间：'+rows.length+' 天（'+rows[0].label+' ~ '+rows[rows.length-1].label+'）｜ 标准效率 '+(std*100).toFixed(0)+'%';
+    var tb=$('edTbody'); tb.innerHTML='';
+    rows.forEach(function(r){
+      var tr=document.createElement('tr');
+      var flag=r.diff>0?'<span class="tag bad">多耗</span>':'<span class="tag good">节省</span>';
+      tr.innerHTML='<td>'+r.label+'</td><td>'+r.output.toFixed(2)+'</td><td>'+r.attend.toFixed(2)+'</td><td>'+(r.eff*100).toFixed(2)+'%</td><td>'+r.need.toFixed(2)+'</td><td>'+((r.diff>=0)?'+':'')+r.diff.toFixed(2)+'</td><td>'+flag+'</td>';
+      tb.appendChild(tr);
+    });
+    drawEdLine(rows,std);
+    drawEdBar(rows);
+    renderEdDay($('edDay').value || e, std);
+  }
+
+  // ============ 分步效率（西安 · 区间加权） ============
+  function xianComputeSub(rows){
+    var s={qc:{so:0,sa:0},assist:{so:0,sa:0},inbound:{so:0,sa:0}};
+    rows.forEach(function(r){
+      if(r.qc){ s.qc.so+=r.qc.prod; s.qc.sa+=r.qc.att; }
+      if(r.assist){ s.assist.so+=r.assist.prod; s.assist.sa+=r.assist.att; }
+      if(r.inbound){ s.inbound.so+=r.inbound.prod; s.inbound.sa+=r.inbound.att; }
+    });
+    ['qc','assist','inbound'].forEach(function(k){ s[k].eff=s[k].sa?s[k].so/s[k].sa:0; });
+    return s;
+  }
+  function drawSubPareto(subs){
+    var c=getChart('sePareto'); if(!c) return;
+    var order=['qc','assist','inbound'], names={qc:'质检',assist:'辅助',inbound:'收仓'};
+    var data=order.map(function(k){return {name:names[k], out:subs[k].so};});
+    data.sort(function(a,b){return b.out-a.out;});
+    var total=data.reduce(function(s,d){return s+d.out;},0)||1;
+    var cats=data.map(function(d){return d.name;});
+    var bar=data.map(function(d){return +d.out.toFixed(2);});
+    var cum=0; var line=data.map(function(d){ cum+=d.out; return +(cum/total*100).toFixed(1); });
+    c.setOption({
+      grid:{left:56,right:56,top:30,bottom:34},
+      tooltip:{trigger:'axis'},
+      legend:{data:['总产出','累计占比'],top:0,textStyle:{fontSize:11}},
+      xAxis:{type:'category',data:cats,axisLabel:{fontSize:11}},
+      yAxis:[{type:'value',name:'总产出'},{type:'value',name:'累计%',max:100,axisLabel:{formatter:'{value}%'}}],
+      series:[
+        {name:'总产出',type:'bar',data:bar,barMaxWidth:54,itemStyle:{color:'#2563eb'},label:{show:true,position:'top',fontSize:10,formatter:function(p){return p.value;}}},
+        {name:'累计占比',type:'line',yAxisIndex:1,data:line,smooth:false,symbol:'circle',symbolSize:6,lineStyle:{color:'#7c3aed',width:2},itemStyle:{color:'#7c3aed'},
+          markLine:{symbol:'none',silent:true,lineStyle:{type:'dashed',color:'#f59e0b'},data:[{yAxis:80}],label:{formatter:'80%',color:'#f59e0b',fontSize:10}}}
+      ]
+    });
+    c.resize();
+  }
+  function renderSubEff(){
+    var s=$('seStart').value, e=$('seEnd').value;
+    var rows=XIAN.filter(function(r){return r.date>=s&&r.date<=e;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+    var subs=xianComputeSub(rows);
+    var names={qc:'质检效率',assist:'辅助效率',inbound:'收仓效率'};
+    $('seStatus').textContent='当前区间：'+rows.length+' 天（'+(rows.length?rows[0].label+' ~ '+rows[rows.length-1].label:'-')+'）｜ 按「总产出 ÷ 总出勤工时」加权';
+    $('seCards').innerHTML=['qc','assist','inbound'].map(function(k){
+      var v=subs[k];
+      return kpiCard(names[k], (v.eff*100).toFixed(2)+'%', '', '', '总产出 <b>'+v.so.toFixed(2)+'</b> ÷ 出勤 <b>'+v.sa.toFixed(2)+'</b>');
+    }).join('');
+    drawSubPareto(subs);
+  }
+
+  // ============ 西安体验数据（周度） ============
+  function fmtCell(v,m){
+    if(v===null||v===undefined) return '—';
+    if(m.type==='rate') return v.toFixed(m.decimals)+'%';
+    if(m.type==='num'||m.type==='int'||m.type==='count') return v.toFixed(m.decimals);
+    return String(v);
+  }
+  function warnOf(m,v){
+    if(v===null||v===undefined) return false;
+    if(m.flagNonZero) return v!==0;
+    if(m.warn){ return m.warn.dir==='gt' ? v>m.warn.thr : v<m.warn.thr; }
+    return false;
+  }
+  function renderExpData(){
+    if(!ED || !EWEEKS.length){ $('expTables').innerHTML='<div class="card"><div class="desc">数据尚未加载（exp_data.js 未能获取），请稍后刷新。</div></div>'; return; }
+    var weeks=EWEEKS, groups=ED.groups;
+
+    function allWarnings(){
+      var res=[];
+      Object.keys(groups).forEach(function(gk){
+        var g=groups[gk]; if(!g) return;
+        var cols=g.axis==='months'?(g.cols||[]):weeks;
+        var unit=g.axis==='months'?'月':'周';
+        (g.metrics||[]).forEach(function(m){
+          (m.values||[]).forEach(function(v,i){ if(warnOf(m,v)) res.push({g:g.name,m:m.name,w:cols[i],unit:unit,v:fmtCell(v,m),label:m.warn?m.warn.label:'≠0 标红'}); });
+        });
+      });
+      return res;
+    }
+    function warnPeriods(){
+      var s=[];
+      Object.keys(groups).forEach(function(gk){
+        var g=groups[gk]; if(!g) return;
+        var cols=g.axis==='months'?(g.cols||[]):weeks;
+        (g.metrics||[]).forEach(function(m){ (m.values||[]).forEach(function(v,i){ if(warnOf(m,v) && s.indexOf(cols[i])<0) s.push(cols[i]); }); });
+      });
+      return s.length && typeof s[0]==='number' ? s.sort(function(a,b){return a-b;}) : s;
+    }
+
+    if(!$('expWkFrom').options.length){
+      weeks.forEach(function(w){ var o1=document.createElement('option'); o1.value=w; o1.textContent=w+'周'; $('expWkFrom').appendChild(o1);
+        var o2=document.createElement('option'); o2.value=w; o2.textContent=w+'周'; $('expWkTo').appendChild(o2); });
+      $('expWkFrom').value=weeks[Math.max(0,weeks.length-3)]; $('expWkTo').value=weeks[weeks.length-1];
+    }
+
+    var view=$('expView').value;
+    var viewKeys = (view==='all') ? Object.keys(groups) : [view];
+    var wFrom=parseInt($('expWkFrom').value,10), wTo=parseInt($('expWkTo').value,10);
+    if(wFrom>wTo){ var t=wFrom; wFrom=wTo; wTo=t; }
+    var onlyWarn=$('expOnlyWarn').checked;
+    var ww=warnPeriods();
+    var showWeeks = onlyWarn ? ww.filter(function(w){ return typeof w==='number' && w>=wFrom && w<=wTo; }) : weeks.filter(function(w){ return w>=wFrom && w<=wTo; });
+
+    var overThr=0, bs=groups['baoSun'];
+    if(bs){ var mz=bs.metrics.filter(function(m){return m.warn&&m.warn.thr===0.015;})[0]; if(mz){ mz.values.forEach(function(v){ if(v!==null && v>mz.warn.thr) overThr++; }); } }
+    var chaiCuBadTotal=0, cc=groups['chaiCu'];
+    if(cc){ var ccm=cc.metrics.filter(function(m){return m.flagNonZero;})[0]; if(ccm){ ccm.values.forEach(function(v){ if(v!==null && v>0) chaiCuBadTotal++; }); } }
+    $('expStat').innerHTML =
+      kpiCard('覆盖周数', weeks.length, '周', '', '第 '+weeks[0]+' ~ '+weeks[weeks.length-1]+' 周') +
+      kpiCard('数据源分组', Object.keys(groups).length, '组', '', '报损 / 客诉 / 工单 / 三催 / 视频抽查') +
+      kpiCard('指标预警（全量）', allWarnings().length, '处', '', '全量口径') +
+      kpiCard('流转损超阈值周', overThr, '周', '', '流转损率 &gt; 0.015%') +
+      kpiCard('视频抽查不合规月', chaiCuBadTotal, '月', '', '西安·是否合规=否');
+
+    var allW=allWarnings();
+    var inRangeW=allW.filter(function(x){ return typeof x.w==='number' && x.w>=wFrom && x.w<=wTo; });
+    allW.forEach(function(x){ if(x.unit==='月' && inRangeW.indexOf(x)<0) inRangeW.push(x); });
+    var warnHtml='<div class="summary-line">全量 '+weeks.length+' 周 + 各月度组中，共 <b style="color:#cf1322">'+allW.length+'</b> 处指标预警；当前区间内 <b style="color:#cf1322">'+inRangeW.length+'</b> 处。</div>';
+    if(allW.length){
+      var byKey={};
+      allW.forEach(function(x){ var k=x.g+' / '+x.m; (byKey[k]=byKey[k]||[]).push(x); });
+      warnHtml+='<div class="warn-groups">';
+      Object.keys(byKey).forEach(function(k){
+        var arr=byKey[k]; var sorted=(arr[0].unit==='周')?arr.sort(function(a,b){return a.w-b.w;}):arr;
+        var textArr=sorted.map(function(x){ return x.unit+x.w+'('+x.v+')'; });
+        warnHtml+='<div class="warn-group"><span class="wg-name">'+esc(k)+' <span class="wg-label">'+esc(arr[0].label)+'</span></span><span class="wg-weeks">'+textArr.join('、')+'</span></div>';
+      });
+      warnHtml+='</div>';
+    } else {
+      warnHtml+='<div class="warn-list"><span class="ok-badge">全部达标 ✓</span></div>';
+    }
+    $('expWarn').innerHTML=warnHtml;
+
+    if(showWeeks.length===0){
+      $('expTables').innerHTML='<div class="card"><div class="summary-line" style="padding:8px 0;">当前筛选（仅看有预警的周）下无预警周 ✓</div></div>';
+      drawExpCharts(viewKeys, showWeeks);
+      return;
+    }
+
+    var html='';
+    viewKeys.forEach(function(gk){
+      var g=groups[gk]; if(!g) return;
+      var isMonth = g.axis==='months';
+      var gCols = isMonth ? (g.cols||[]) : showWeeks.filter(function(w){
+        var _idx=w-1;
+        return (g.metrics||[]).some(function(_m){ var _v=_m.values||[]; return _idx<_v.length && _v[_idx]!==null; });
+      });
+      var gLast = gCols[gCols.length-1];
+      var headLabel = isMonth ? '指标＼月' : '指标＼周';
+      html+='<div class="card"><div class="grp-title">'+esc(g.name)+'<span class="src-note" style="margin-left:8px;">'+esc(g.src||'')+'</span></div>';
+      var rf = EXP_ROW_FILTER[gk]||'';
+      var rowFilterHtml='';
+      if(gk==='baoSun'||gk==='keSu'){
+        rowFilterHtml='<select class="exp-row-filter" data-gk="'+gk+'">'+
+          '<option value=""'+(rf===''?' selected':'')+'>全部指标</option>'+
+          '<option value="__warn"'+(rf==='__warn'?' selected':'')+'>仅看预警指标</option>'+
+          (g.metrics||[]).map(function(m){ return '<option value="'+esc(m.name)+'"'+(rf===m.name?' selected':'')+'>'+esc(m.name)+'</option>'; }).join('')+
+          '</select>';
+      }
+      html+='<div class="dtbl-wrap"><table class="dtbl"><thead><tr><th class="metric">'+headLabel+rowFilterHtml+'</th>';
+      gCols.forEach(function(c){
+        var lbl=isMonth?c:(c+'周');
+        html+='<th'+(c===gLast?' class="latest"':'')+'>'+lbl+'</th>';
+      });
+      html+='</tr></thead><tbody>';
+      (g.metrics||[]).forEach(function(m){
+        var rf=EXP_ROW_FILTER[gk]||'';
+        if(rf){
+          if(rf==='__warn'){
+            var hasWarn=gCols.some(function(c){ var _vi=isMonth?gCols.indexOf(c):(c-1); return warnOf(m, (_vi<(m.values||[]).length)?m.values[_vi]:null); });
+            if(!hasWarn) return;
+          } else if(m.name!==rf){ return; }
+        }
+        var tag='';
+        if(m.warn) tag=' <span class="src">⚠ '+m.warn.label+'</span>';
+        else if(m.flagNonZero) tag=' <span class="src">⚠ ≠0 标红</span>';
+        html+='<tr><td class="metric">'+esc(m.name)+tag;
+        if(m.note) html+='<div class="src-note">'+esc(m.note)+'</div>';
+        html+='</td>';
+        gCols.forEach(function(c){
+          var _vi=isMonth?gCols.indexOf(c):(c-1);
+          var v=(_vi<(m.values||[]).length)?m.values[_vi]:null;
+          var cls=[]; if(c===gLast) cls.push('latest'); if(warnOf(m,v)) cls.push('warn');
+          var cellHtml;
+          if(m.flagNonZero && v!==null && v!==0){
+            if(isMonth) cellHtml='<button type="button" class="cc-detail-btn" data-month="'+esc(c)+'">'+fmtCell(v,m)+'</button>';
+            else { var ch=(m.name.indexOf('B2B')>=0)?'B2B':((m.name.indexOf('拍拍')>=0)?'拍拍':''); cellHtml='<button type="button" class="cc-detail-btn" data-week="'+esc(c)+'" data-channel="'+ch+'">'+fmtCell(v,m)+'</button>'; }
+          } else { cellHtml=fmtCell(v,m); }
+          html+='<td class="'+(cls.join(' '))+'">'+cellHtml+'</td>';
+        });
+        html+='</tr>';
+      });
+      html+='</tbody></table></div>';
+      if(g.detail && g.detail.length){
+        html+='<div class="src-note">点击上方非零数值按钮，可查看该周期全部明细（共 '+g.detail.length+' 条，仓=西安）。</div>';
+      }
+      html+='<div class="src-note">'+esc(g.note||'')+'</div></div>';
+    });
+    $('expTables').innerHTML=html;
+
+    Array.prototype.forEach.call(document.querySelectorAll('#expTables .exp-row-filter'), function(sel){
+      sel.addEventListener('change', function(){ EXP_ROW_FILTER[sel.getAttribute('data-gk')]=sel.value; renderExpData(); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('#expTables .cc-detail-btn'), function(btn){
+      btn.addEventListener('click', function(){ openDetail(btn); });
+    });
+
+    drawExpCharts(viewKeys, showWeeks);
+    expUpdateActiveQuick();
+  }
+
+  function drawExpCharts(viewKeys, showWeeks){
+    var showTrend = viewKeys.indexOf('baoSun')>=0;
+    var showSan = viewKeys.indexOf('sanCui')>=0;
+    var cT=$('card-expTrend'), cP=$('card-expPareto'), cS=$('card-expSanCui');
+    if(cT) cT.style.display = showTrend?'':'none';
+    if(cP) cP.style.display = showTrend?'':'none';
+    if(cS) cS.style.display = showSan?'':'none';
+    if(showTrend){ drawExpTrend(showWeeks); drawExpPareto(showWeeks); }
+    if(showSan){ drawExpSanCui(showWeeks); }
+  }
+  function drawExpTrend(showWeeks){
+    var c=getChart('expTrend'); if(!c) return;
+    var bs=ED.groups['baoSun']; if(!bs) return;
+    var mz=bs.metrics.filter(function(m){return m.warn&&m.warn.thr===0.015;})[0];
+    var mzong=bs.metrics.filter(function(m){return m.name==='总报损率';})[0];
+    if(!mz) return;
+    var weeks=EWEEKS;
+    var idx=showWeeks.map(function(w){ return weeks.indexOf(w); });
+    var valsL=idx.map(function(i){ return i<0?null:mz.values[i]; });
+    var valsZ=idx.map(function(i){ return (i<0||!mzong)?null:mzong.values[i]; });
+    var thr=mz.warn.thr;
+    var cats=showWeeks.map(function(w){return w+'周';});
+    c.setOption({
+      grid:{left:60,right:18,top:34,bottom:30},
+      tooltip:{trigger:'axis',valueFormatter:function(v){ return v==null?'-':(+v).toFixed(3)+'%'; }},
+      legend:{data:['流转损率','总报损率'],top:0,textStyle:{fontSize:11}},
+      xAxis:{type:'category',data:cats,axisLabel:{fontSize:10,interval:Math.floor(showWeeks.length/10)}},
+      yAxis:{type:'value',name:'比率',axisLabel:{formatter:function(v){return (+v).toFixed(3)+'%';}}},
+      series:[
+        {name:'总报损率',type:'line',data:valsZ,connectNulls:true,symbol:'circle',symbolSize:5,lineStyle:{width:2,color:'#3b5bdb'},itemStyle:{color:'#3b5bdb'}},
+        {name:'流转损率',type:'line',connectNulls:true,symbol:'circle',symbolSize:6,
+          data:valsL.map(function(v){ return {value:v, itemStyle:{color:(v!==null&&v>thr)?'#e5484d':'#7c3aed'}}; }),
+          lineStyle:{width:2,color:'#7c3aed'},
+          markLine:{symbol:'none',silent:true,lineStyle:{type:'dashed',color:'#dc2626',width:1.5},
+            data:[{yAxis:+thr}],label:{formatter:'指标 '+(thr*100).toFixed(3)+'%',color:'#dc2626',fontSize:10,position:'insideEndTop'}}
+        }
+      ]
+    });
+    c.resize();
+  }
+  function drawExpPareto(showWeeks){
+    var c=getChart('expPareto'); if(!c) return;
+    var bs=ED.groups['baoSun']; if(!bs) return;
+    var mTot=bs.metrics.filter(function(m){return m.name==='总报损量';})[0];
+    if(!mTot) return;
+    var data=showWeeks.map(function(w){ var i=EWEEKS.indexOf(w); return {wk:w, v:(i<0?null:mTot.values[i])}; })
+      .filter(function(d){ return d.v!==null; });
+    if(!data.length){ c.clear(); return; }
+    data.sort(function(a,b){return b.v-a.v;});
+    var total=data.reduce(function(s,d){return s+d.v;},0)||1;
+    var cats=data.map(function(d){return d.wk+'周';});
+    var bar=data.map(function(d){return +d.v.toFixed(0);});
+    var cum=0; var line=data.map(function(d){ cum+=d.v; return +(cum/total*100).toFixed(1); });
+    c.setOption({
+      grid:{left:56,right:56,top:30,bottom:34},
+      tooltip:{trigger:'axis'},
+      legend:{data:['总报损量','累计占比'],top:0,textStyle:{fontSize:11}},
+      xAxis:{type:'category',data:cats,axisLabel:{fontSize:10,interval:0,rotate: data.length>12?30:0}},
+      yAxis:[{type:'value',name:'报损量'},{type:'value',name:'累计%',max:100,axisLabel:{formatter:'{value}%'}}],
+      series:[
+        {name:'总报损量',type:'bar',data:bar,barMaxWidth:40,itemStyle:{color:'#3b5bdb'},label:{show:true,position:'top',fontSize:9}},
+        {name:'累计占比',type:'line',yAxisIndex:1,data:line,smooth:false,symbol:'circle',symbolSize:5,lineStyle:{color:'#7c3aed',width:2},itemStyle:{color:'#7c3aed'},
+          markLine:{symbol:'none',silent:true,lineStyle:{type:'dashed',color:'#f59e0b'},data:[{yAxis:80}],label:{formatter:'80%',color:'#f59e0b',fontSize:10}}}
+      ]
+    });
+    c.resize();
+  }
+  function drawExpSanCui(showWeeks){
+    var c=getChart('expSanCui'); if(!c) return;
+    var sc=ED.groups['sanCui']; if(!sc) return;
+    var cities=[{k:'西安',col:'#2563eb'},{k:'太原',col:'#16a34a'},{k:'兰州',col:'#f59e0b'}];
+    var weeks=EWEEKS;
+    var idx=showWeeks.map(function(w){return weeks.indexOf(w);});
+    var series=cities.map(function(ct){
+      var m=sc.metrics.filter(function(x){return x.name===ct.k;})[0];
+      if(!m) return null;
+      return {name:ct.k,col:ct.col,vals:idx.map(function(i){ return i<0?null:m.values[i]; })};
+    }).filter(Boolean);
+    if(!series.length){ c.clear(); return; }
+    var thr=95, cats=showWeeks.map(function(w){return w+'周';});
+    var ser=series.map(function(s){
+      return {name:s.name,type:'line',connectNulls:true,
+        data:s.vals.map(function(v){ return {value:v, itemStyle:{color:(v!==null&&v<thr)?'#e5484d':s.col}}; }),
+        lineStyle:{width:2,color:s.col},symbol:'circle',symbolSize:6};
+    });
+    ser[0].markLine={symbol:'none',silent:true,lineStyle:{type:'dashed',color:'#dc2626',width:1.5},
+      data:[{yAxis:thr}],label:{formatter:'指标 95%',color:'#dc2626',fontSize:10,position:'insideEndTop'}};
+    c.setOption({
+      grid:{left:56,right:18,top:34,bottom:30},
+      tooltip:{trigger:'axis',valueFormatter:function(v){return v==null?'-':(+v).toFixed(2)+'%';}},
+      legend:{data:cities.map(function(c){return c.k;}),top:0,textStyle:{fontSize:11}},
+      xAxis:{type:'category',data:cats,axisLabel:{fontSize:10,interval:Math.floor(showWeeks.length/10)}},
+      yAxis:{type:'value',name:'处理率%',axisLabel:{formatter:'{value}%'}},
+      series:ser
+    });
+    c.resize();
+  }
+  function expUpdateActiveQuick(){
+    if(!EWEEKS.length) return;
+    var fIdx=EWEEKS.indexOf(parseInt($('expWkFrom').value,10));
+    var tIdx=EWEEKS.indexOf(parseInt($('expWkTo').value,10));
+    var last=EWEEKS.length-1, isAll=(fIdx===0&&tIdx===last), n=tIdx-fIdx+1;
+    Array.prototype.forEach.call(document.querySelectorAll('#page-exp-data .quick-row button'), function(b){
+      var r=b.getAttribute('data-range');
+      var on=(r==='all'&&isAll)||(r!=='all'&&parseInt(r,10)===n&&tIdx===last);
+      b.classList.toggle('active', !!on);
+    });
+  }
+
+  // ============ 明细弹窗 ============
+  var modalEl=null;
+  function ensureModal(){
+    if(modalEl) return modalEl;
+    var ov=document.createElement('div'); ov.id='edModal';
+    ov.style.cssText='position:fixed;inset:0;background:rgba(20,28,45,.5);display:none;z-index:9999;align-items:center;justify-content:center;';
+    var box=document.createElement('div');
+    box.style.cssText='background:#fff;border-radius:14px;max-width:700px;width:90%;max-height:82vh;overflow:auto;padding:20px 22px;box-shadow:0 20px 60px rgba(0,0,0,.3);';
+    ov.appendChild(box);
+    ov.addEventListener('click',function(e){ if(e.target===ov) ov.style.display='none'; });
+    document.body.appendChild(ov); modalEl=ov; modalEl._box=box; return modalEl;
+  }
+  function openDetail(btn){
+    var m=ensureModal();
+    var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><b style="font-size:15px;">明细</b><span style="cursor:pointer;color:#888;font-size:22px;line-height:1;" onclick="document.getElementById(\'edModal\').style.display=\'none\'">×</span></div>';
+    var rows;
+    if(btn.getAttribute('data-month')){
+      var mo=btn.getAttribute('data-month');
+      rows=(ED.groups['chaiCu'].detail||[]).filter(function(d){return d['月']===mo;});
+      html+='<div class="src-note" style="margin-bottom:8px;">视频抽查不合规明细 · '+esc(mo)+'（仓=西安 且 是否合规=否）</div>';
+    } else {
+      var wk=btn.getAttribute('data-week'); var ch=btn.getAttribute('data-channel')||'';
+      rows=(ED.groups['keSu'].detail||[]).filter(function(d){return d['周期']===wk+'周' && (ch? d['渠道']===ch : true);});
+      html+='<div class="src-note" style="margin-bottom:8px;">客诉明细 · '+esc(wk)+'周'+(ch?(' · 渠道='+ch):'')+'</div>';
+    }
+    if(!rows.length){ html+='<div class="note">无明细记录</div>'; }
+    else {
+      html+='<table class="dtbl"><thead><tr>'+Object.keys(rows[0]).map(function(k){return '<th>'+esc(k)+'</th>';}).join('')+'</tr></thead><tbody>';
+      rows.forEach(function(r){ html+='<tr>'+Object.keys(r).map(function(k){return '<td style="text-align:left;white-space:normal;max-width:220px;">'+esc(r[k])+'</td>';}).join('')+'</tr>'; });
+      html+='</tbody></table>';
+    }
+    m._box.innerHTML=html; m.style.display='flex';
+  }
+
+  // ============ 快速选择 / 筛选交互 ============
+  function matchQuick(prefix){
+    var s=$(prefix+'Start').value, e=$(prefix+'End').value;
+    if(s===minD && e===maxD) return 'all';
+    var n7=Math.max(0,XIAN.length-7), n3=Math.max(0,XIAN.length-3);
+    if(s===XIAN[n7].date && e===maxD) return '7';
+    if(s===XIAN[n3].date && e===maxD) return '3';
+    return '';
+  }
+  function setQuickActive(prefix,pageId,force){
+    var act=(force!==undefined)?force:matchQuick(prefix);
+    Array.prototype.forEach.call(document.querySelectorAll('#page-'+pageId+' .quick-row button'), function(b){
+      b.classList.toggle('active', b.getAttribute('data-range')===act);
+    });
+  }
+  function bindQuick(prefix,pageId,defs,renderFn){
+    Array.prototype.forEach.call(document.querySelectorAll('#page-'+pageId+' .quick-row button'), function(btn){
+      btn.onclick=function(){
+        var k=btn.getAttribute('data-range');
+        var s=$(prefix+'Start'), e=$(prefix+'End');
+        if(k==='all'){ s.value=minD; e.value=maxD; }
+        else { var n=parseInt(k,10); var idx=Math.max(0,XIAN.length-n); s.value=XIAN[idx].date; e.value=maxD; }
+        if(prefix==='ed') $('edDay').value=e.value;
+        setQuickActive(prefix,pageId,k);
+        renderFn();
+      };
+    });
+  }
+  var ED_QUICK=[{label:'全部',range:'all'},{label:'近7天',range:'7'},{label:'近3天',range:'3'}];
+  var SE_QUICK=[{label:'全部',range:'all'},{label:'近7天',range:'7'},{label:'近3天',range:'3'}];
+  var EXP_QUICK=[{label:'全部',range:'all'},{label:'近12周',range:'12'},{label:'近8周',range:'8'},{label:'近3周',range:'3'},{label:'近一周',range:'1'}];
+
+  function initEffDaily(){
+    var s=$('edStart'), e=$('edEnd');
+    s.min=e.min=minD; s.max=e.max=maxD;
+    var d3=Math.max(0,XIAN.length-3);
+    s.value=XIAN[d3].date; e.value=maxD;
+    $('edDay').min=minD; $('edDay').value=maxD;
+    $('edQuick').innerHTML=ED_QUICK.map(function(q){return '<button class="qbtn" data-range="'+q.range+'">'+q.label+'</button>';}).join('');
+    bindQuick('ed','eff-daily',ED_QUICK,renderEffDaily);
+    setQuickActive('ed','eff-daily');
+    renderEffDaily();
+    $('edApply').onclick=function(){
+      if(s.value>maxD) s.value=maxD; if(e.value>maxD) e.value=maxD;
+      if(s.value<minD) s.value=minD; if(e.value<minD) e.value=minD;
+      if(s.value>e.value){ var t=s.value; s.value=e.value; e.value=t; }
+      $('edDay').value=e.value;
+      setQuickActive('ed','eff-daily');
+      renderEffDaily();
+    };
+    $('edReset').onclick=function(){ s.value=minD; e.value=maxD; $('edStd').value=84; $('edDay').value=maxD; setQuickActive('ed','eff-daily','all'); renderEffDaily(); };
+    $('edDay').onchange=function(){
+      var day=$('edDay').value;
+      if(day<s.value) s.value=day; if(day>e.value) e.value=day;
+      setQuickActive('ed','eff-daily');
+      renderEffDaily();
+    };
+    $('edDayToday').onclick=function(){ $('edDay').value=maxD; s.value=maxD; e.value=maxD; setQuickActive('ed','eff-daily',''); renderEffDaily(); };
+    $('edDayYesterday').onclick=function(){ var idx=XIAN.map(function(x){return x.date;}).indexOf(maxD); var y=XIAN[Math.max(0,idx-1)]; $('edDay').value=y.date; s.value=y.date; e.value=maxD; setQuickActive('ed','eff-daily',''); renderEffDaily(); };
+  }
+  function initSubEff(){
+    var s=$('seStart'), e=$('seEnd');
+    s.min=e.min=minD; s.max=e.max=maxD; s.value=minD; e.value=maxD;
+    $('seQuick').innerHTML=SE_QUICK.map(function(q){return '<button class="qbtn" data-range="'+q.range+'">'+q.label+'</button>';}).join('');
+    bindQuick('se','sub-eff',SE_QUICK,renderSubEff);
+    setQuickActive('se','sub-eff');
+    renderSubEff();
+    $('seApply').onclick=function(){
+      if(s.value>maxD) s.value=maxD; if(e.value>maxD) e.value=maxD;
+      if(s.value<minD) s.value=minD; if(e.value<minD) e.value=minD;
+      if(s.value>e.value){ var t=s.value; s.value=e.value; e.value=t; }
+      setQuickActive('se','sub-eff'); renderSubEff();
+    };
+    $('seReset').onclick=function(){ s.value=minD; e.value=maxD; setQuickActive('se','sub-eff','all'); renderSubEff(); };
+  }
+  function initExpData(){
+    $('expQuick').innerHTML=EXP_QUICK.map(function(q){return '<button class="qbtn" data-range="'+q.range+'">'+q.label+'</button>';}).join('');
+    Array.prototype.forEach.call(document.querySelectorAll('#page-exp-data .quick-row button'), function(btn){
+      btn.onclick=function(){
+        var k=btn.getAttribute('data-range');
+        if(k==='all'){ $('expWkFrom').value=EWEEKS[0]; $('expWkTo').value=EWEEKS[EWEEKS.length-1]; }
+        else { var n=parseInt(k,10); var idx=Math.max(0,EWEEKS.length-n); $('expWkFrom').value=EWEEKS[idx]; $('expWkTo').value=EWEEKS[EWEEKS.length-1]; }
+        expUpdateActiveQuick();
+        renderExpData();
+      };
+    });
+    $('expApply').onclick=function(){ renderExpData(); };
+    $('expReset').onclick=function(){ $('expView').value='all'; $('expOnlyWarn').checked=false; if(EWEEKS.length){ $('expWkFrom').value=EWEEKS[Math.max(0,EWEEKS.length-3)]; $('expWkTo').value=EWEEKS[EWEEKS.length-1]; } renderExpData(); };
+    $('expView').onchange=function(){ renderExpData(); };
+    $('expOnlyWarn').onchange=function(){ renderExpData(); };
+    renderExpData();
+  }
+
+  // ============ 页面激活联动 ============
+  function onShow(page){
+    if(page==='eff-daily'){ renderEffDaily(); }
+    else if(page==='sub-eff'){ renderSubEff(); }
+    else if(page==='exp-data'){ renderExpData(); }
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('#nav a'), function(a){
+    var p=a.getAttribute('data-page');
+    if(p==='eff-daily'||p==='sub-eff'||p==='exp-data'){
+      a.addEventListener('click', function(){ setTimeout(function(){ onShow(p); }, 60); });
+    }
+  });
+  window.addEventListener('resize', resizeCharts);
+
+  initEffDaily();
+  initSubEff();
+  initExpData();
+})();
+</script>
 </body>
 </html>
