@@ -108,7 +108,7 @@
 .top-nav{display:flex;align-items:center;gap:22px;background:#fff;border-bottom:1px solid var(--border);padding:0 22px;position:sticky;top:0;z-index:30;min-height:56px;box-shadow:0 2px 8px rgba(30,35,45,.05);box-sizing:border-box;}
 .nav-brand{font-size:16px;font-weight:800;color:var(--ink);white-space:nowrap;padding:10px 0;}
 .nav-links{display:flex;align-items:stretch;gap:4px;height:56px;}
-.nav-links a{display:flex;align-items:center;padding:0 16px;color:var(--ink-soft);text-decoration:none;font-size:14px;cursor:pointer;transition:.15s;border-bottom:3px solid transparent;font-weight:600;}
+.nav-links a{display:flex;align-items:center;padding:0 13px;color:var(--ink-soft);text-decoration:none;font-size:14px;cursor:pointer;transition:.15s;border-bottom:3px solid transparent;font-weight:600;white-space:nowrap;}
 .nav-links a:hover{color:var(--ink);background:#f4f6f9;}
 .nav-links a.active{color:#e54545;border-bottom-color:#e54545;background:transparent;}
 .nav-spacer{flex:1;}
@@ -231,7 +231,8 @@
 .warn-table{width:100%;border-collapse:collapse;font-size:13px;}
 .warn-table th,.warn-table td{border:1px solid #eceff5;padding:7px 9px;text-align:left;}
 .warn-table th{background:#f2f5fa;color:#5a6b8c;}
-@media (max-width:720px){ .top-nav{flex-wrap:wrap;height:auto;padding:8px 12px;gap:8px;} .nav-links{height:auto;flex-wrap:wrap;} .nav-links a{padding:8px 12px;border-bottom-width:2px;} .nav-foot{display:none;} .msg-grid{grid-template-columns:1fr;} }
+@media (max-width:1200px){ .nav-links a{padding:0 9px;font-size:13px;} }
+@media (max-width:720px){ .top-nav{flex-wrap:wrap;height:auto;padding:8px 12px;gap:8px;} .nav-links{height:auto;flex-wrap:wrap;} .nav-links a{padding:8px 12px;border-bottom-width:2px;white-space:normal;} .nav-foot{display:none;} .msg-grid{grid-template-columns:1fr;} }
 </style>
 
 <style>
@@ -397,13 +398,13 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
 <nav class="top-nav" id="nav">
   <div class="nav-brand">📊 运营数据与员工UPPH看板</div>
   <div class="nav-links">
-    <a data-page="home" class="active"><span>🏠 首页</span></a>
-    <a data-page="upph"><span>📋 每日工作量明细</span></a>
-    <a data-page="ops-day"><span>📈 运营数据单日详情</span></a>
-    <a data-page="attend"><span>👥 员工出勤</span></a>
-    <a data-page="eff-daily"><span>📊 每日效率</span></a>
-    <a data-page="sub-eff"><span>🧩 分步效率</span></a>
-    <a data-page="exp-data"><span>📍 西安体验数据</span></a>
+    <a data-page="home" class="active"><span>首页</span></a>
+    <a data-page="upph"><span>每日工作量明细</span></a>
+    <a data-page="ops-day"><span>运营数据单日详情</span></a>
+    <a data-page="attend"><span>员工出勤</span></a>
+    <a data-page="eff-daily"><span>每日效率</span></a>
+    <a data-page="sub-eff"><span>分步效率</span></a>
+    <a data-page="exp-data"><span>西安体验数据</span></a>
   </div>
   <div class="nav-spacer"></div>
   <div class="nav-foot">员工工作量与UPPH看板 · 运营数据单日详情已并入</div>
