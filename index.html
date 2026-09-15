@@ -590,11 +590,7 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
         <div class="card"><h3>明细数据</h3>
           <div class="dtbl-wrap"><table class="dtbl"><thead><tr><th>日期</th><th>产出</th><th>出勤工时</th><th>实际效率</th><th>标准需工时</th><th>工时差</th><th>判定</th></tr></thead><tbody id="edTbody"></tbody></table></div>
         </div>
-        <div class="grid-sep"><span>分析</span></div>
-        <div class="grid">
-          <div class="card"><h3>每日实际效率 vs 标准线</h3><div id="edLine" style="height:300px;"></div></div>
-          <div class="card"><h3>每日工时差（红=多耗 / 绿=节省）</h3><div id="edBar" style="height:300px;"></div></div>
-        </div>
+        <!-- 折线图等分析图表已移至首页「分析看板」的「每日效率分析」板块 -->
       </div>
     </section>
     <section class="page" id="page-sub-eff">
@@ -611,8 +607,7 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
           <div class="quick-row"><span class="qlbl">快速选择：</span><div id="seQuick" style="display:flex;gap:8px;flex-wrap:wrap;"></div></div>
         </div>
         <div class="grid" id="seCards" style="margin-top:14px;"></div>
-        <div class="grid-sep"><span>分析</span></div>
-        <div class="card"><h3>分步产出帕累托（产能分布）</h3><div id="sePareto" style="height:340px;"></div><div class="desc">按筛选区间内各分步「总产出」降序排列，柱=总产出，紫折线=累计占比，识别产能主要集中在哪一环节（80% 帕累托线为参考）</div></div>
+        <!-- 帕累托等分析图表已移至首页「分析看板」的「分步效率分析」板块 -->
       </div>
     </section>
     <section class="page" id="page-exp-data">
@@ -639,14 +634,7 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
         <div class="kpis" id="expStat" style="margin-top:12px;"></div>
         <div class="card"><h3>指标预警</h3><div id="expWarn"></div></div>
         <div id="expTables"></div>
-        <div class="grid-sep"><span>分析</span></div>
-        <div class="grid">
-          <div class="card" id="card-expTrend"><h3>流转损率趋势（周度）</h3><div id="expTrend" style="height:300px;"></div><div class="desc">紫线=流转损率、蓝线=总报损率（纵轴为百分比数值，如 0.054%）；红色虚线=指标 0.015%；圆点标红=超指标周。随上方周筛选联动。</div></div>
-          <div class="card" id="card-expPareto"><h3>报损量帕累托（总报损量·按周）</h3><div id="expPareto" style="height:320px;"></div><div class="desc">柱=筛选周内各周总报损量（降序排列），紫折线=累计占比；橙虚线=80% 帕累托线，用于定位「关键少数」周。随上方周筛选联动。</div></div>
-        </div>
-        <div class="grid">
-          <div class="card" id="card-expSanCui"><h3>三催分仓 24H处理率（指标95%）</h3><div id="expSanCui" style="height:300px;"></div><div class="desc">三仓24H催单处理率（单位%）；红色虚线=指标95%，圆点标红=低于95%的周。随上方周筛选联动。</div></div>
-        </div>
+        <!-- 趋势/帕累托/处理率等分析图表已移至首页「分析看板」的「西安体验数据分析」板块 -->
       </div>
     </section>
   </main>
@@ -1694,6 +1682,7 @@ window.DASHBOARD_DATA = {"2026-07-16":{"date":"2026-07-16","messages":{"external
     var box=$('homeResult');
     var t=window.__homeTarget;
     if(!t){ disposeHomeCharts(); box.innerHTML='<div class="hr-empty">请点击上方任一模块，或点击「查询」按钮查看区间汇总。</div>'; return; }
+    if(t==='effDaily'||t==='subEff'||t==='expData'){ if(window.renderXianAna){ disposeHomeCharts(); window.renderXianAna(t); } return; }
     var region=$('homeRegion').value;
     var ri=homeRangeInfo();
     var rs=ri.s, re=ri.e;
@@ -1718,12 +1707,13 @@ window.DASHBOARD_DATA = {"2026-07-16":{"date":"2026-07-16","messages":{"external
     card.addEventListener('click', function(e){
       e.preventDefault();
       var t=card.getAttribute('data-target');
-      /* 新三大模块：从首页「分析看板」跳转到对应模块页面（数据 + 底部分析图同页展示） */
+      /* 新三大模块：点击后把分析图表渲染到首页「分析看板」(#homeResult)，与老板块一致 */
       if(t==='effDaily'||t==='subEff'||t==='expData'){
-        var pageMap={effDaily:'eff-daily',subEff:'sub-eff',expData:'exp-data'};
-        var pid=pageMap[t];
-        var navA=document.querySelector('#nav a[data-page="'+pid+'"]');
-        if(navA) navA.click();
+        window.__homeTarget=t;
+        document.querySelectorAll('.module-card').forEach(function(c){ c.classList.remove('active'); });
+        card.classList.add('active');
+        updateHomeStatus();
+        renderHomeResult();
         return;
       }
       window.__homeTarget=t;
@@ -2701,6 +2691,63 @@ window.DASHBOARD_DATA = {"2026-07-16":{"date":"2026-07-16","messages":{"external
     else if(page==='sub-eff'){ renderSubEff(); }
     else if(page==='exp-data'){ renderExpData(); }
   }
+
+  // ============ 首页「分析看板」渲染（新三大模块的分析图表移至此，看板页面只留明细数据） ============
+  function disposeCharts(ids){
+    ids.forEach(function(id){ if(EDC[id]){ try{ EDC[id].dispose(); }catch(e){} delete EDC[id]; } });
+  }
+  function renderXianAna(t){
+    var box=$('homeResult'); if(!box) return;
+    if(t==='effDaily'){
+      var s=$('edStart').value, e=$('edEnd').value, std=parseFloat($('edStd').value)/100;
+      if(!s||!e){ s=XIAN[0].date; e=XIAN[XIAN.length-1].date; }
+      var rows=XIAN.filter(function(r){return r.date>=s&&r.date<=e;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+      rows.forEach(function(r){ r.eff=r.attend?r.output/r.attend:0; r.need=r.output/std; r.diff=r.attend-r.need; });
+      if(!rows.length){ box.innerHTML='<div class="hr-empty">当前区间无数据</div>'; return; }
+      box.innerHTML='<div class="hr-head"><span>每日效率分析（西安）｜ '+rows[0].label+' ~ '+rows[rows.length-1].label+' ｜ 标准效率 '+(std*100).toFixed(0)+'%</span></div>'+
+        '<div class="hr-card"><div class="grid">'+
+        '<div class="card"><h3>每日实际效率 vs 标准线</h3><div id="edLine" style="height:300px;"></div></div>'+
+        '<div class="card"><h3>每日工时差（红=多耗 / 绿=节省）</h3><div id="edBar" style="height:300px;"></div></div>'+
+        '</div></div>';
+      disposeCharts(['edLine','edBar']);
+      drawEdLine(rows,std); drawEdBar(rows);
+    }
+    else if(t==='subEff'){
+      var s=$('seStart').value, e=$('seEnd').value;
+      if(!s||!e){ s=XIAN[0].date; e=XIAN[XIAN.length-1].date; }
+      var rows=XIAN.filter(function(r){return r.date>=s&&r.date<=e;}).sort(function(a,b){return a.date.localeCompare(b.date);});
+      var subs=xianComputeSub(rows);
+      box.innerHTML='<div class="hr-head"><span>分步效率分析（西安·区间加权）｜ '+(rows.length?rows[0].label+' ~ '+rows[rows.length-1].label:'-')+'</span></div>'+
+        '<div class="hr-card"><div class="card"><h3>分步产出帕累托（产能分布）</h3><div id="sePareto" style="height:340px;"></div><div class="desc">按区间内各分步「总产出」降序排列，柱=总产出，紫折线=累计占比</div></div></div>';
+      disposeCharts(['sePareto']);
+      drawSubPareto(subs);
+    }
+    else if(t==='expData'){
+      if(!ED || !EWEEKS.length){ box.innerHTML='<div class="hr-empty">体验数据尚未加载，请稍后刷新</div>'; return; }
+      if(!$('expWkFrom').options.length){
+        EWEEKS.forEach(function(w){ var o1=document.createElement('option'); o1.value=w; o1.textContent=w+'周'; $('expWkFrom').appendChild(o1); var o2=document.createElement('option'); o2.value=w; o2.textContent=w+'周'; $('expWkTo').appendChild(o2); });
+        $('expWkFrom').value=EWEEKS[Math.max(0,EWEEKS.length-3)]; $('expWkTo').value=EWEEKS[EWEEKS.length-1];
+      }
+      var view=$('expView').value;
+      var viewKeys=(view==='all')?Object.keys(ED.groups):[view];
+      var wFrom=parseInt($('expWkFrom').value,10), wTo=parseInt($('expWkTo').value,10);
+      if(wFrom>wTo){ var tt=wFrom; wFrom=wTo; wTo=tt; }
+      var onlyWarn=$('expOnlyWarn').checked;
+      var ww=[]; Object.keys(ED.groups).forEach(function(gk){ var g=ED.groups[gk]; if(!g) return; var cols=g.axis==='months'?(g.cols||[]):EWEEKS; (g.metrics||[]).forEach(function(m){ (m.values||[]).forEach(function(v,i){ if(warnOf(m,v)&&ww.indexOf(cols[i])<0) ww.push(cols[i]); }); }); });
+      if(ww.length&&typeof ww[0]==='number') ww.sort(function(a,b){return a-b;});
+      var showWeeks=onlyWarn?ww.filter(function(w){return typeof w==='number'&&w>=wFrom&&w<=wTo;}):EWEEKS.filter(function(w){return w>=wFrom&&w<=wTo;});
+      box.innerHTML='<div class="hr-head"><span>西安体验数据分析（周度）｜ 第 '+wFrom+' ~ '+wTo+' 周</span></div>'+
+        '<div class="hr-card"><div class="grid">'+
+        '<div class="card" id="card-expTrend"><h3>流转损率趋势（周度）</h3><div id="expTrend" style="height:300px;"></div></div>'+
+        '<div class="card" id="card-expPareto"><h3>报损量帕累托（总报损量·按周）</h3><div id="expPareto" style="height:320px;"></div></div>'+
+        '</div><div class="grid">'+
+        '<div class="card" id="card-expSanCui"><h3>三催分仓 24H处理率（指标95%）</h3><div id="expSanCui" style="height:300px;"></div></div>'+
+        '</div></div>';
+      disposeCharts(['expTrend','expPareto','expSanCui']);
+      drawExpCharts(viewKeys, showWeeks);
+    }
+  }
+  window.renderXianAna = renderXianAna;
   Array.prototype.forEach.call(document.querySelectorAll('#nav a'), function(a){
     var p=a.getAttribute('data-page');
     if(p==='eff-daily'||p==='sub-eff'||p==='exp-data'){
