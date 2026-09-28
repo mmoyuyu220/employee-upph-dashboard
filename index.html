@@ -522,7 +522,7 @@ table.dtbl tbody tr:hover{background:var(--accent-soft);}
       <div id="quickBtns" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
     </div>
   </div>
-  <div class="empty-note" id="emptyNote">📭 所选日期范围内暂无工作量数据（当前数据覆盖 8/16 ~ 9/26）</div>
+  <div class="empty-note" id="emptyNote">📭 所选日期范围内暂无工作量数据（当前数据覆盖 8/16 ~ 9/27）</div>
 
   <div class="kpis" id="kpis"></div>
 
@@ -657,7 +657,7 @@ const PROJ=[
 ];
 const NAMES=["马红霞","杨凡凡","赵豫思"];
 const COLORS=["#ED7D31","#4F81BD","#70AD47","#9E5FA8","#C0504D","#2E9C8F","#D8A657","#8C564B","#E86DA4"];
-const DAYS=["8/16","8/17","8/18","8/19","8/20","8/21","8/22","8/23","8/24","8/25","8/26","8/27","8/28","8/29","8/30","8/31","9/1","9/2","9/3","9/4","9/5","9/6","9/7","9/8","9/9","9/10","9/11","9/12","9/13","9/14","9/15","9/16","9/17","9/18","9/19","9/20","9/21","9/22","9/23","9/24","9/25","9/26"];
+const DAYS=["8/16","8/17","8/18","8/19","8/20","8/21","8/22","8/23","8/24","8/25","8/26","8/27","8/28","8/29","8/30","8/31","9/1","9/2","9/3","9/4","9/5","9/6","9/7","9/8","9/9","9/10","9/11","9/12","9/13","9/14","9/15","9/16","9/17","9/18","9/19","9/20","9/21","9/22","9/23","9/24","9/25","9/26","9/27"];
 
 const RAW=[
   {d:"8/16",n:"马红霞",p:{waihu:[2,5.9],shangxia:[15,42.3],mail:[0,0],yichang:[15,102],qutui:[0,0],xiaoxi:[16,46],shipin:[5,14],sw:[5,68],gongdan:[5,215.5]},h:8},
@@ -786,6 +786,9 @@ const RAW=[
   {d:"9/26",n:"赵豫思",p:{waihu:[0,0],shangxia:[0,0],mail:[9,9],yichang:[1,5],qutui:[10,28],xiaoxi:[8,34],shipin:[25,96],sw:[5,35],gongdan:[0,0]},h:8},
   {d:"9/26",n:"马红霞",p:{waihu:[7,9],shangxia:[30,84.6],mail:[0,0],yichang:[14,71],qutui:[0,0],xiaoxi:[19,63],shipin:[14,64],sw:[0,0],gongdan:[2,86.2]},h:8},
   {d:"9/26",n:"杨凡凡",p:{waihu:[6,6],shangxia:[27,76.1],mail:[0,0],yichang:[16,82],qutui:[0,0],xiaoxi:[20,57],shipin:[24,92],sw:[0,0],gongdan:[0,0]},h:8},
+  {d:"9/27",n:"赵豫思",p:{waihu:[0,0],shangxia:[4,11.3],mail:[26,26],yichang:[7,28],qutui:[22,50],xiaoxi:[7,33],shipin:[25,99],sw:[4,26.7],gongdan:[0,0]},h:8},
+  {d:"9/27",n:"马红霞",p:{waihu:[16,19],shangxia:[48,135.4],mail:[0,0],yichang:[21,89],qutui:[0,0],xiaoxi:[25,93],shipin:[9,43],sw:[0,0],gongdan:[1,43.1]},h:8},
+  {d:"9/27",n:"杨凡凡",p:{waihu:[0,0],shangxia:[0,0],mail:[0,0],yichang:[0,0],qutui:[0,0],xiaoxi:[0,0],shipin:[0,0],sw:[0,0],gongdan:[0,0]},h:0},
 ];
 RAW.forEach(r=>{
   r.tq=()=>PROJ.reduce((s,p)=>s+r.p[p.key][0],0);
